@@ -1,4 +1,7 @@
 import streamlit as st
+import sounddevice as sd
+import numpy as np
+from scipy.io.wavfile import write
 from deep_translator import GoogleTranslator
 import speech_recognition as sr
 
@@ -29,6 +32,14 @@ if "recording" not in st.session_state:
 if "text" not in st.session_state:
     st.session_state.text = ""
 
+# Function to record audio using sounddevice
+def record_audio(duration=10, samplerate=44100):
+    st.info("Recording... Speak now!")
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
+    sd.wait()  # Wait until recording is finished
+    write("output.wav", samplerate, audio_data)  # Save as WAV file
+    return "output.wav"
+
 # Function to start recording
 def start_recording():
     st.session_state.recording = True
@@ -41,6 +52,8 @@ def stop_recording():
 col1, col2 = st.columns(2)
 with col1:
     if st.button("Start Recording 🎙️", key="start"):
+        audio_file = record_audio()
+        st.success(f"Audio recorded and saved as {audio_file}")
         start_recording()
 with col2:
     if st.session_state.recording and st.button("Stop Recording ⏹️", key="stop"):
